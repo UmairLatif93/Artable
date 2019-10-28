@@ -7,24 +7,56 @@
 //
 
 import UIKit
+import Firebase
 
 class LoginVC: UIViewController {
+    
+    @IBOutlet weak var emailText: UITextField!
+    @IBOutlet weak var passwordText: UITextField!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
     }
-    
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @IBAction func LoginClicked(_ sender: Any) {
+        
+        guard let email = emailText.text , email.isNotEmpty ,
+            let password = passwordText.text , password.isNotEmpty else {
+            
+                simpleAlert(title: "Error", msg: "Please fill out all fields.")
+                return
+            }
+        
+        activityIndicator.startAnimating()
+        Auth.auth().signIn(withEmail: email, password: password) { (user, error) in
+            
+            if let error = error {
+                
+                print(error)
+                self.activityIndicator.stopAnimating()
+                Auth.auth().handleFireAuthError(error: error, vc: self)
+                return
+            }
+            
+            self.activityIndicator.stopAnimating()
+            self.dismiss(animated: true, completion: nil)
+        }
     }
-    */
-
+    
+    @IBAction func ForgotPasswordClicked(_ sender: Any) {
+        
+        let vc = ForgotPasswordVC()
+        vc.modalTransitionStyle = .crossDissolve
+        vc.modalPresentationStyle = .overCurrentContext
+        present(vc, animated: true, completion: nil)
+    }
+    
+    @IBAction func GuestClicked(_ sender: Any) {
+        
+        dismiss(animated: true, completion: nil)
+    }
 }

@@ -64,21 +64,36 @@ class RegisterVC: UIViewController, UITextFieldDelegate {
             
         guard let email = emailTxt.text , email.isNotEmpty ,
         let username = userNameTxt.text , username.isNotEmpty ,
-        let password = passwordTxt.text , password.isNotEmpty else { return }
+        let password = passwordTxt.text , password.isNotEmpty else {
+            
+                simpleAlert(title: "Error", msg: "Please fill out all fields.")
+                return
+            }
+        
+        guard let confirmPass = cnfrmPasswordTxt.text , confirmPass == password else {
+            
+            simpleAlert(title: "Error", msg: "Passwords do not match.")
+            return
+        }
         
         activityIndicator.startAnimating()
         
-        Auth.auth().createUser(withEmail: email, password: password) { (authResult, error) in
-            
-            self.activityIndicator.stopAnimating()
+        guard let authUser = Auth.auth().currentUser else { return }
+        
+        let credentials = EmailAuthProvider.credential(withEmail: email, password: password)
+        
+        authUser.link(with: credentials) { (result, error) in
             
             if let error = error {
                 
                 debugPrint(error)
+                self.activityIndicator.stopAnimating()
+                Auth.auth().handleFireAuthError(error: error, vc: self)
                 return
             }
             
-            debugPrint("Successfully registered new user")
+            self.activityIndicator.stopAnimating()
+            self.dismiss(animated: true, completion: nil)
         }
     }
 }
